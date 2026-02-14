@@ -1,69 +1,13 @@
-const DEFAULT_DELAY_SECONDS = 12;
-const NUDGE_SMALL = 1.0;
-const NUDGE_BIG = 5.0;
+const btnPlayPause = document.getElementById('btn-play-pause');
+const capPlay = document.getElementById('cap-play');
+const capPause = document.getElementById('cap-pause');
 
-const lagReadout = document.getElementById('lag-readout');
-const onAirLight = document.getElementById('on-air');
+let isPlaying = false;
 
-const buttons = {
-  play: document.getElementById('btn-play'),
-  pause: document.getElementById('btn-pause'),
-  delay1: document.getElementById('btn-delay-1'),
-  delay5: document.getElementById('btn-delay-5'),
-  catchup1: document.getElementById('btn-catchup-1'),
-  catchup5: document.getElementById('btn-catchup-5'),
-  scram: document.getElementById('btn-scram'),
-};
-
-function clamp(value, min, max) {
-  return Math.min(Math.max(value, min), max);
-}
-
-function formatLag(seconds) {
-  if (!Number.isFinite(seconds)) return '--.-s';
-  const sign = seconds >= 0 ? '-' : '+';
-  const abs = Math.abs(seconds);
-  const whole = Math.floor(abs).toString().padStart(2, '0');
-  const frac = (abs % 1).toFixed(1).slice(1); // ".X"
-  return sign + whole + frac + 's';
-}
-
-function updateLagDisplay(delaySeconds) {
-  lagReadout.textContent = formatLag(delaySeconds);
-}
-
-function setOnAir(playing) {
-  if (playing) {
-    onAirLight.classList.remove('dimmed');
-  } else {
-    onAirLight.classList.add('dimmed');
-  }
-}
-
-function setStatus(text, isError) {
-  // Status is now conveyed via ON AIR light and LCD readout.
-  // On error, show message in the readout briefly.
-  if (isError) {
-    lagReadout.textContent = 'ERR';
-    setOnAir(false);
-  }
-}
-
-function setBusy(isBusy) {
-  Object.values(buttons).forEach((button) => {
-    button.disabled = isBusy;
-  });
-}
-
-function updateSnapshot(snapshot) {
-  if (!snapshot || !snapshot.detected) {
-    updateLagDisplay(NaN);
-    setOnAir(false);
-    return;
-  }
-
-  updateLagDisplay(snapshot.currentDelaySeconds);
-  setOnAir(!snapshot.paused);
+function updatePlayPauseButton(playing) {
+  isPlaying = playing;
+  capPlay.classList.toggle('hidden', playing);
+  capPause.classList.toggle('hidden', !playing);
 }
 
 function getActiveTabId() {
@@ -105,67 +49,24 @@ function executeMediaAction(tabId, action, payload) {
   });
 }
 
-async function runAction(action, payload, options) {
-  const useBusy = !options || options.busy !== false;
-
-  if (useBusy) setBusy(true);
-
+async function runAction(action, payload) {
   try {
     const tabId = await getActiveTabId();
     const result = await executeMediaAction(tabId, action, payload);
 
-    if (!result || !result.ok) {
-      throw new Error((result && result.error) || 'Nah, that didn\'t work');
-    }
+    if (!result || !result.ok) return;
 
-    updateSnapshot(result.snapshot);
-  } catch (error) {
-    setStatus(error.message, true);
-  } finally {
-    if (useBusy) setBusy(false);
+    if (result.snapshot) {
+      updatePlayPauseButton(!result.snapshot.paused);
+    }
+  } catch (e) {
+    // silently fail
   }
 }
 
-// --- Button press animation ---
-function addPressEffect(btn) {
-  btn.addEventListener('mousedown', () => btn.classList.add('pressing'));
-  btn.addEventListener('mouseup', () => btn.classList.remove('pressing'));
-  btn.addEventListener('mouseleave', () => btn.classList.remove('pressing'));
-}
-
-Object.values(buttons).forEach(addPressEffect);
-
-// --- Event listeners ---
-
-buttons.play.addEventListener('click', () => {
-  runAction('play', {});
+btnPlayPause.addEventListener('click', () => {
+  runAction(isPlaying ? 'pause' : 'play', {});
 });
-
-buttons.pause.addEventListener('click', () => {
-  runAction('pause', {});
-});
-
-buttons.delay1.addEventListener('click', () => {
-  runAction('nudge', { deltaSeconds: NUDGE_SMALL });
-});
-
-buttons.delay5.addEventListener('click', () => {
-  runAction('nudge', { deltaSeconds: NUDGE_BIG });
-});
-
-buttons.catchup1.addEventListener('click', () => {
-  runAction('nudge', { deltaSeconds: -NUDGE_SMALL });
-});
-
-buttons.catchup5.addEventListener('click', () => {
-  runAction('nudge', { deltaSeconds: -NUDGE_BIG });
-});
-
-buttons.scram.addEventListener('click', () => {
-  runAction('goLive', {});
-});
-
-// --- Init ---
 
 async function init() {
   await runAction('detect', {});
@@ -243,7 +144,7 @@ function runMediaAction(action, payload) {
   }
 
   if (!best) {
-    return { ok: false, error: 'No player found — open a live stream first, legend' };
+    return { ok: false, error: 'No player found' };
   }
 
   if (action === 'play') {

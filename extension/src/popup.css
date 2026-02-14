@@ -20,3 +20,30 @@ body {
   width: 100%;
   height: auto;
 }
+
+.hidden {
+  display: none;
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  padding: 16px 0;
+}
+
+.cap-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.1s;
+}
+
+.cap-btn:active {
+  transform: scale(0.95);
+}
+
+.cap-btn img {
+  width: 150px;
+  height: 150px;
+}
