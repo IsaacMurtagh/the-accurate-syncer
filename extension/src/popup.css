@@ -14,3 +14,9 @@ body {
   background-position: center;
   color: #1A1A1A;
 }
+
+.banner {
+  display: block;
+  width: 100%;
+  height: auto;
+}
