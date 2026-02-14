@@ -28,7 +28,20 @@ body {
 .controls {
   display: flex;
   justify-content: center;
-  padding: 16px 0;
+  padding: 8px 0 4px;
+}
+
+.nudge-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 4px;
+  margin-top: -4px;
+}
+
+.nudge-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .cap-btn {
@@ -46,4 +59,25 @@ body {
 .cap-btn img {
   width: 150px;
   height: 150px;
+}
+
+.nudge-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.1s;
+}
+
+.nudge-btn:active {
+  transform: scale(0.95);
+}
+
+.nudge-btn img {
+  width: 60px;
+  height: auto;
+}
+
+.nudge-big img {
+  width: 30px;
 }
