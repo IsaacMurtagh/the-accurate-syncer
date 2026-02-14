@@ -1,8 +1,20 @@
 const btnPlayPause = document.getElementById('btn-play-pause');
 const capPlay = document.getElementById('cap-play');
 const capPause = document.getElementById('cap-pause');
+const btnAir = document.getElementById('btn-air');
+const airOn = document.getElementById('air-on');
+const airOff = document.getElementById('air-off');
+
+const ACC_URL = 'https://www.iheart.com/live/alternative-commentary-collective-6693/';
 
 let isPlaying = false;
+let streamDetected = false;
+
+function updateAirIndicator(detected) {
+  streamDetected = detected;
+  airOn.classList.toggle('hidden', !detected);
+  airOff.classList.toggle('hidden', detected);
+}
 
 function updatePlayPauseButton(playing) {
   isPlaying = playing;
@@ -57,6 +69,7 @@ async function runAction(action, payload) {
     if (!result || !result.ok) return;
 
     if (result.snapshot) {
+      updateAirIndicator(result.snapshot.detected);
       updatePlayPauseButton(!result.snapshot.paused);
     }
   } catch (e) {
@@ -66,6 +79,14 @@ async function runAction(action, payload) {
 
 btnPlayPause.addEventListener('click', () => {
   runAction(isPlaying ? 'pause' : 'play', {});
+});
+
+btnAir.addEventListener('click', () => {
+  if (streamDetected) {
+    runAction('goLive', {});
+  } else {
+    chrome.tabs.create({ url: ACC_URL });
+  }
 });
 
 async function init() {

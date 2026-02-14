@@ -25,17 +25,32 @@ body {
   display: none;
 }
 
-.controls {
+.air-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.air-btn img {
+  width: 100px;
+  height: auto;
+}
+
+.main-row {
   display: flex;
   justify-content: center;
-  padding: 8px 0 4px;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
 }
 
 .nudge-row {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   padding: 0 4px;
-  margin-top: -4px;
+  margin-top: 8px;
 }
 
 .nudge-group {
@@ -57,8 +72,8 @@ body {
 }
 
 .cap-btn img {
-  width: 150px;
-  height: 150px;
+  width: 110px;
+  height: 110px;
 }
 
 .nudge-btn {
@@ -74,7 +89,7 @@ body {
 }
 
 .nudge-btn img {
-  width: 60px;
+  width: 40px;
   height: auto;
 }
 
