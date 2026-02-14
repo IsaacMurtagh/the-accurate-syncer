@@ -2,7 +2,8 @@
   "manifest_version": 3,
   "name": "The ACCurate Syncer",
   "version": "0.1.0",
-  "description": "Scaffold for a browser extension that will sync live ACC commentary with sports streams.",
+  "description": "Sync live ACC commentary by controlling delay on on-page media players.",
+  "permissions": ["activeTab", "scripting", "storage"],
   "browser_specific_settings": {
     "gecko": {
       "id": "the-accurate-syncer@isaacmurtagh.github.io",
