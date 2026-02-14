@@ -30,6 +30,11 @@ body {
   border: none;
   cursor: pointer;
   padding: 0;
+  transition: transform 0.1s;
+}
+
+.air-btn:active {
+  transform: scale(0.95);
 }
 
 .air-btn img {
@@ -47,16 +52,11 @@ body {
 
 .nudge-row {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  padding: 0 4px;
+  gap: 8px;
+  padding: 0 8px;
   margin-top: 8px;
-}
-
-.nudge-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
 }
 
 .cap-btn {
@@ -89,10 +89,22 @@ body {
 }
 
 .nudge-btn img {
-  width: 40px;
+  width: 36px;
   height: auto;
 }
 
 .nudge-big img {
-  width: 30px;
+  width: 46px;
+}
+
+.offset-display {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  font-weight: bold;
+  color: #1A1A1A;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 6px;
+  padding: 4px 8px;
+  min-width: 48px;
+  text-align: center;
 }

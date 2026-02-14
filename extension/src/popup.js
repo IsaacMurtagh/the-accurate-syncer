@@ -4,11 +4,24 @@ const capPause = document.getElementById('cap-pause');
 const btnAir = document.getElementById('btn-air');
 const airOn = document.getElementById('air-on');
 const airOff = document.getElementById('air-off');
+const offsetDisplay = document.getElementById('offset-display');
+const btnBack5 = document.getElementById('btn-back-5');
+const btnBack05 = document.getElementById('btn-back-05');
+const btnForward05 = document.getElementById('btn-forward-05');
+const btnForward5 = document.getElementById('btn-forward-5');
 
 const ACC_URL = 'https://www.iheart.com/live/alternative-commentary-collective-6693/';
 
 let isPlaying = false;
 let streamDetected = false;
+let currentDelay = 0;
+
+function updateOffsetDisplay(snapshot) {
+  if (snapshot && snapshot.detected && Number.isFinite(snapshot.currentDelaySeconds)) {
+    currentDelay = snapshot.currentDelaySeconds;
+  }
+  offsetDisplay.textContent = currentDelay.toFixed(1) + 's';
+}
 
 function updateAirIndicator(detected) {
   streamDetected = detected;
@@ -71,6 +84,7 @@ async function runAction(action, payload) {
     if (result.snapshot) {
       updateAirIndicator(result.snapshot.detected);
       updatePlayPauseButton(!result.snapshot.paused);
+      updateOffsetDisplay(result.snapshot);
     }
   } catch (e) {
     // silently fail
@@ -81,13 +95,18 @@ btnPlayPause.addEventListener('click', () => {
   runAction(isPlaying ? 'pause' : 'play', {});
 });
 
-btnAir.addEventListener('click', () => {
+btnAir.addEventListener('click', (e) => {
   if (streamDetected) {
+    e.preventDefault();
     runAction('goLive', {});
-  } else {
-    chrome.tabs.create({ url: ACC_URL });
   }
+  // when no stream: native <a> link opens iheart
 });
+
+btnBack5.addEventListener('click', () => runAction('nudge', { deltaSeconds: 5 }));
+btnBack05.addEventListener('click', () => runAction('nudge', { deltaSeconds: 0.5 }));
+btnForward05.addEventListener('click', () => runAction('nudge', { deltaSeconds: -0.5 }));
+btnForward5.addEventListener('click', () => runAction('nudge', { deltaSeconds: -5 }));
 
 async function init() {
   await runAction('detect', {});
