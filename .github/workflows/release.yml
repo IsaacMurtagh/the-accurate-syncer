@@ -47,4 +47,4 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
-          files: markdown-web-clipper-${{ github.ref_name }}.zip
+          files: the-accurate-syncer-${{ github.ref_name }}.zip
