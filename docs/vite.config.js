@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   plugins: [tailwindcss()],
-  base: '/acc-sky-syncer/',
+  base: '/the-accurate-syncer/',
   build: {
     outDir: 'dist',
     rollupOptions: {
