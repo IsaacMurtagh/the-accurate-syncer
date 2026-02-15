@@ -15,12 +15,29 @@ const ACC_URL = 'https://www.iheart.com/live/alternative-commentary-collective-6
 let isPlaying = false;
 let streamDetected = false;
 let currentDelay = 0;
+let pausedAt = null;
+let delayAtPause = 0;
+let tickInterval = null;
 
-function updateOffsetDisplay(snapshot) {
-  if (snapshot && snapshot.detected && Number.isFinite(snapshot.currentDelaySeconds)) {
-    currentDelay = snapshot.currentDelaySeconds;
-  }
+function renderOffset() {
   offsetDisplay.textContent = currentDelay.toFixed(1) + 's';
+}
+
+function startTicking() {
+  stopTicking();
+  delayAtPause = currentDelay;
+  tickInterval = setInterval(() => {
+    const elapsed = (Date.now() - pausedAt) / 1000;
+    currentDelay = delayAtPause + elapsed;
+    offsetDisplay.textContent = currentDelay.toFixed(1) + 's';
+  }, 100);
+}
+
+function stopTicking() {
+  if (tickInterval) {
+    clearInterval(tickInterval);
+    tickInterval = null;
+  }
 }
 
 function updateAirIndicator(detected) {
@@ -59,6 +76,7 @@ function executeMediaAction(tabId, action, payload) {
     chrome.scripting.executeScript(
       {
         target: { tabId },
+        world: 'MAIN',
         func: runMediaAction,
         args: [action, payload],
       },
@@ -83,30 +101,47 @@ async function runAction(action, payload) {
 
     if (result.snapshot) {
       updateAirIndicator(result.snapshot.detected);
-      updatePlayPauseButton(!result.snapshot.paused);
-      updateOffsetDisplay(result.snapshot);
+      updatePlayPauseButton(!result.snapshot.muted);
     }
   } catch (e) {
-    // silently fail
+    console.error('[ACC Syncer]', action, e);
   }
 }
 
 btnPlayPause.addEventListener('click', () => {
-  runAction(isPlaying ? 'pause' : 'play', {});
+  if (isPlaying) {
+    pausedAt = Date.now();
+    startTicking();
+    runAction('mute', {});
+  } else {
+    const elapsed = pausedAt ? (Date.now() - pausedAt) / 1000 : 0;
+    pausedAt = null;
+    stopTicking();
+    renderOffset();
+    runAction('resume', { rewindSeconds: elapsed });
+  }
 });
 
 btnAir.addEventListener('click', (e) => {
   if (streamDetected) {
     e.preventDefault();
+    currentDelay = 0;
+    renderOffset();
     runAction('goLive', {});
   }
   // when no stream: native <a> link opens iheart
 });
 
-btnBack5.addEventListener('click', () => runAction('nudge', { deltaSeconds: 5 }));
-btnBack05.addEventListener('click', () => runAction('nudge', { deltaSeconds: 0.5 }));
-btnForward05.addEventListener('click', () => runAction('nudge', { deltaSeconds: -0.5 }));
-btnForward5.addEventListener('click', () => runAction('nudge', { deltaSeconds: -5 }));
+function nudge(delta) {
+  currentDelay = Math.max(0, currentDelay + delta);
+  renderOffset();
+  runAction('nudge', { deltaSeconds: delta });
+}
+
+btnBack5.addEventListener('click', () => nudge(5));
+btnBack05.addEventListener('click', () => nudge(0.5));
+btnForward05.addEventListener('click', () => nudge(-0.5));
+btnForward5.addEventListener('click', () => nudge(-5));
 
 async function init() {
   await runAction('detect', {});
@@ -117,6 +152,7 @@ init();
 // --- Content script (runs inside the active page context) ---
 
 function runMediaAction(action, payload) {
+  try {
   function isPlaceholderSource(src) {
     return /blank\.mp4/i.test(src || '');
   }
@@ -163,6 +199,7 @@ function runMediaAction(action, payload) {
       detected: true,
       src: info.src,
       paused: info.paused,
+      muted: info.element.muted,
       seekWindowSeconds: info.seekWindowSeconds,
       currentDelaySeconds: info.currentDelaySeconds,
     };
@@ -187,13 +224,22 @@ function runMediaAction(action, payload) {
     return { ok: false, error: 'No player found' };
   }
 
-  if (action === 'play') {
-    best.element.play();
+  if (action === 'mute') {
+    best.element.muted = true;
     return { ok: true, snapshot: snapshotFromInfo(toInfo(best.element, best.index)) };
   }
 
-  if (action === 'pause') {
-    best.element.pause();
+  if (action === 'resume') {
+    var rewindSeconds = normalizeNumber(payload && payload.rewindSeconds, 0);
+    if (rewindSeconds > 0 && best.seekWindowSeconds > 0) {
+      var targetTime = clampInner(
+        best.element.currentTime - rewindSeconds,
+        best.seekStart,
+        best.seekEnd
+      );
+      best.element.currentTime = targetTime;
+    }
+    best.element.muted = false;
     return { ok: true, snapshot: snapshotFromInfo(toInfo(best.element, best.index)) };
   }
 
@@ -214,11 +260,15 @@ function runMediaAction(action, payload) {
   }
 
   if (action === 'nudge') {
-    const deltaSeconds = normalizeNumber(payload && payload.deltaSeconds, 0);
-    const nextDelay = clampInner(best.currentDelaySeconds + deltaSeconds, 0, best.seekWindowSeconds);
+    var LIVE_EDGE_BUFFER = 0.5;
+    var deltaSeconds = normalizeNumber(payload && payload.deltaSeconds, 0);
+    var nextDelay = clampInner(best.currentDelaySeconds + deltaSeconds, LIVE_EDGE_BUFFER, best.seekWindowSeconds);
     best.element.currentTime = best.seekEnd - nextDelay;
     return { ok: true, snapshot: snapshotFromInfo(toInfo(best.element, best.index)) };
   }
 
   return { ok: false, error: 'Unsupported action: ' + action };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
 }
