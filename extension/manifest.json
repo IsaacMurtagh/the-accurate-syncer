@@ -3,7 +3,7 @@
   "name": "The ACCurate Syncer",
   "version": "0.1.0",
   "description": "Sync live ACC commentary by controlling delay on on-page media players.",
-  "permissions": ["activeTab", "scripting", "storage"],
+  "permissions": ["activeTab", "scripting", "storage", "tabs"],
   "browser_specific_settings": {
     "gecko": {
       "id": "the-accurate-syncer@isaacmurtagh.github.io",

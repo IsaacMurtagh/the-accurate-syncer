@@ -6,8 +6,6 @@ const airOn = document.getElementById('air-on');
 const airOff = document.getElementById('air-off');
 const offsetDisplay = document.getElementById('offset-display');
 const btnBack5 = document.getElementById('btn-back-5');
-const btnBack05 = document.getElementById('btn-back-05');
-const btnForward05 = document.getElementById('btn-forward-05');
 const btnForward5 = document.getElementById('btn-forward-5');
 
 const ACC_URL = 'https://www.iheart.com/live/alternative-commentary-collective-6693/';
@@ -40,13 +38,14 @@ function stopTicking() {
   }
 }
 
-function updateAirIndicator(detected) {
-  streamDetected = detected;
-  airOn.classList.toggle('hidden', !detected);
-  airOff.classList.toggle('hidden', detected);
+function updateLiveState(snapshot) {
+  const live = snapshot && snapshot.detected && !snapshot.paused;
+  streamDetected = live;
+  airOn.classList.toggle('hidden', !live);
+  airOff.classList.toggle('hidden', live);
 }
 
-function updatePlayPauseButton(playing) {
+function setPlayPauseIcon(playing) {
   isPlaying = playing;
   capPlay.classList.toggle('hidden', playing);
   capPause.classList.toggle('hidden', !playing);
@@ -100,8 +99,10 @@ async function runAction(action, payload) {
     if (!result || !result.ok) return;
 
     if (result.snapshot) {
-      updateAirIndicator(result.snapshot.detected);
-      updatePlayPauseButton(!result.snapshot.muted);
+      updateLiveState(result.snapshot);
+      if (action === 'detect' && streamDetected) {
+        setPlayPauseIcon(true);
+      }
     }
   } catch (e) {
     console.error('[ACC Syncer]', action, e);
@@ -109,11 +110,14 @@ async function runAction(action, payload) {
 }
 
 btnPlayPause.addEventListener('click', () => {
+  if (!streamDetected) return;
   if (isPlaying) {
+    setPlayPauseIcon(false);
     pausedAt = Date.now();
     startTicking();
     runAction('mute', {});
   } else {
+    setPlayPauseIcon(true);
     const elapsed = pausedAt ? (Date.now() - pausedAt) / 1000 : 0;
     pausedAt = null;
     stopTicking();
@@ -122,25 +126,37 @@ btnPlayPause.addEventListener('click', () => {
   }
 });
 
-btnAir.addEventListener('click', (e) => {
+btnAir.addEventListener('click', async (e) => {
+  e.preventDefault();
   if (streamDetected) {
-    e.preventDefault();
+    renderOffset();
+    runAction('nudge', { deltaSeconds: -currentDelay });
     currentDelay = 0;
     renderOffset();
-    runAction('goLive', {});
+    return;
   }
-  // when no stream: native <a> link opens iheart
+  // Only open iHeart if not already on iheart
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab || !tab.url || !tab.url.startsWith('https://www.iheart.com')) {
+      chrome.tabs.create({ url: ACC_URL });
+    }
+  } catch (_) {}
 });
 
 function nudge(delta) {
+  if (!streamDetected) return;
+  if (delta < 0 && currentDelay <= 0) return;
   currentDelay = Math.max(0, currentDelay + delta);
+  if (pausedAt) {
+    delayAtPause = currentDelay;
+    pausedAt = Date.now();
+  }
   renderOffset();
   runAction('nudge', { deltaSeconds: delta });
 }
 
 btnBack5.addEventListener('click', () => nudge(5));
-btnBack05.addEventListener('click', () => nudge(0.5));
-btnForward05.addEventListener('click', () => nudge(-0.5));
 btnForward5.addEventListener('click', () => nudge(-5));
 
 async function init() {

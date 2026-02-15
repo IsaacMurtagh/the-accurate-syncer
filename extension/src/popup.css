@@ -89,12 +89,8 @@ body {
 }
 
 .nudge-btn img {
-  width: 36px;
-  height: auto;
-}
-
-.nudge-big img {
   width: 46px;
+  height: auto;
 }
 
 .offset-display {
