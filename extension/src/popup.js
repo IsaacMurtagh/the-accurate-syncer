@@ -18,6 +18,7 @@ let delayAtPause = 0;
 let tickInterval = null;
 let cachedTabId = null;
 let sessionId = null;
+let detectedAt = null;
 
 function renderOffset() {
   offsetDisplay.textContent = currentDelay.toFixed(1) + 's';
@@ -116,6 +117,7 @@ async function runAction(action, payload) {
     if (result.snapshot) {
       updateLiveState(result.snapshot);
       if (action === 'detect' && streamDetected) {
+        if (!detectedAt) detectedAt = Date.now();
         setPlayPauseIcon(true);
       }
     }
@@ -125,7 +127,10 @@ async function runAction(action, payload) {
 }
 
 btnPlayPause.addEventListener('click', () => {
-  if (!streamDetected) return;
+  if (!streamDetected) {
+    runAction('shake', {});
+    return;
+  }
   if (isPlaying) {
     setPlayPauseIcon(false);
     pausedAt = Date.now();
@@ -146,16 +151,16 @@ btnPlayPause.addEventListener('click', () => {
 btnAir.addEventListener('click', async (e) => {
   e.preventDefault();
   if (streamDetected) {
-    var LIVE_BUFFER = 3;
-    currentDelay = LIVE_BUFFER;
+    if (currentDelay <= 0) return;
     if (pausedAt) {
       pausedAt = null;
       stopTicking();
       setPlayPauseIcon(true);
     }
+    currentDelay = 0;
     renderOffset();
     saveState();
-    runAction('setDelay', { delaySeconds: LIVE_BUFFER });
+    runAction('goLive', {});
     return;
   }
   // Only open iHeart if not already on iheart
@@ -170,7 +175,9 @@ btnAir.addEventListener('click', async (e) => {
 function nudge(delta) {
   if (!streamDetected) return;
   if (delta < 0 && currentDelay <= 0) return;
-  currentDelay = Math.max(0, currentDelay + delta);
+  var maxDelay = detectedAt ? (Date.now() - detectedAt) / 1000 : Infinity;
+  if (delta > 0 && currentDelay >= maxDelay) return;
+  currentDelay = Math.min(Math.max(0, currentDelay + delta), maxDelay);
   if (pausedAt) {
     delayAtPause = currentDelay;
     pausedAt = Date.now();
@@ -273,6 +280,25 @@ function runMediaAction(action, payload) {
   function normalizeNumber(value, fallback) {
     const parsed = Number(value);
     return Number.isFinite(parsed) ? parsed : fallback;
+  }
+
+  if (action === 'shake') {
+    var buttons = document.querySelectorAll('[data-test="play-button"]');
+    if (buttons.length === 0) return { ok: false, error: 'No play buttons found' };
+    var styleId = 'acc-shake-style';
+    if (!document.getElementById(styleId)) {
+      var style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = '@keyframes acc-shake{0%{transform:translate(0,0)}4%{transform:translate(-6px,5px)}8%{transform:translate(7px,-6px)}12%{transform:translate(-5px,-7px)}16%{transform:translate(6px,5px)}20%{transform:translate(-7px,4px)}24%{transform:translate(5px,-6px)}28%{transform:translate(-6px,-5px)}32%{transform:translate(6px,7px)}36%{transform:translate(-5px,6px)}40%{transform:translate(7px,-5px)}44%{transform:translate(-6px,-6px)}48%{transform:translate(5px,6px)}52%{transform:translate(-7px,5px)}56%{transform:translate(6px,-5px)}60%{transform:translate(-5px,-6px)}64%{transform:translate(5px,4px)}68%{transform:translate(-4px,4px)}72%{transform:translate(4px,-3px)}76%{transform:translate(-3px,-3px)}80%{transform:translate(3px,2px)}84%{transform:translate(-2px,2px)}88%{transform:translate(2px,-1px)}92%{transform:translate(-1px,-1px)}96%{transform:translate(1px,1px)}100%{transform:translate(0,0)}}';
+      document.head.appendChild(style);
+    }
+    buttons.forEach(function(btn) {
+      btn.style.animation = 'none';
+      btn.offsetHeight;
+      btn.style.animation = 'acc-shake 0.9s linear';
+      setTimeout(function() { btn.style.animation = ''; }, 1000);
+    });
+    return { ok: true };
   }
 
   const best = detectBest();

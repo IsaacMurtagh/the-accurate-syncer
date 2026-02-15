@@ -65,10 +65,10 @@ body {
 
 .air-btn {
   position: absolute;
-  top: 0;
+  top: 3px;
   right: 4px;
   z-index: 2;
-  transform: rotate(12deg);
+  transform: rotate(18deg);
   background: none;
   border: none;
   cursor: pointer;
@@ -77,7 +77,7 @@ body {
 }
 
 .air-btn:active {
-  transform: rotate(12deg) scale(0.95);
+  transform: rotate(18deg) scale(0.95);
 }
 
 .air-btn img {
