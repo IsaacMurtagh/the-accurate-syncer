@@ -1,28 +1,30 @@
 # The ACCurate Syncer
 
-A browser extension for syncing live ACC commentary with your sports stream.
+[Website](https://isaacmurtagh.github.io/the-accurate-syncer/)
 
-## Current V1
+![The ACCurate Syncer](docs/public/step-3.png)
 
-- Detects the best on-page `audio`/`video` element
-- Delay slider for moving backward/forward from live
-- Editable delay input (seconds)
-- Quick nudges: `+0.5s back` / `-0.5s forward`
-- `Live` jump action
-- Stores your preferred delay locally in extension storage
+Sky Sport streaming is a solid 20–60 seconds behind live radio. So the ACC calls tries before you've even seen the linebreak. This extension holds the iHeart Radio stream back so the commentary lines up with what's on your screen.
 
-## Notes
+## How it works
 
-- Works best on players with a seekable live window (DVR-style live streams).
-- Tokenized stream URLs are not required for V1 because control happens on the page media element.
+Pause the audio, wait until commentary matches your TV picture, hit play. The stream rewinds by exactly how long you waited. Fine-tune with the ±5s buttons if needed.
 
-## Run locally
+## Install
 
-1. Install dependencies with `npm install`
-2. Open `chrome://extensions/` and enable Developer mode
-3. Click Load unpacked and select `extension/`
-4. Open a live stream page, start playback, then use the extension popup controls
+1. Open `chrome://extensions/` and enable Developer mode
+2. Click **Load unpacked** and select the `extension/` folder
+3. Navigate to the ACC on [iHeart Radio](https://www.iheart.com/live/alternative-commentary-collective-6693/) and hit play
+4. Click the extension icon and sync away
+
+## Docs
+
+[the-accurate-syncer](https://isaacmurtagh.github.io/the-accurate-syncer/)
 
 ## License
 
-MIT - see [LICENSE](LICENSE).
+GPL-3.0 — see [LICENSE](LICENSE).
+
+## Disclaimer
+
+This is a fan-made project. Not affiliated with or endorsed by [The ACC](https://www.theaccnz.com/), [iHeartMedia](https://www.iheart.com), or [Sky Sport](https://www.sky.co.nz/discover/sky-sport).
