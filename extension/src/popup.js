@@ -16,7 +16,6 @@ let currentDelay = 0;
 let pausedAt = null;
 let delayAtPause = 0;
 let tickInterval = null;
-let cachedTabId = null;
 let sessionId = null;
 let detectedAt = null;
 
@@ -106,7 +105,6 @@ function executeMediaAction(tabId, action, payload) {
 async function runAction(action, payload) {
   try {
     const tabId = await getActiveTabId();
-    cachedTabId = tabId;
     const result = await executeMediaAction(tabId, action, payload);
 
     if (!result || !result.ok) return;
