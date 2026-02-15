@@ -7,13 +7,26 @@
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-  <img src="../assets/banner.png" class="banner" alt="The ACCurate Syncer">
-
-  <div class="main-row">
+  <div class="header">
+    <div class="header-links">
+      <a href="https://github.com/isaacmurtagh/acc-sky-syncer" target="_blank" class="header-link" title="GitHub">
+        <img src="../assets/icon-github.svg" alt="GitHub">
+      </a>
+      <a href="https://example.com" target="_blank" class="header-link" title="Website">
+        <img src="../assets/icon-website.svg" alt="Website">
+      </a>
+      <a href="https://example.com/legal" target="_blank" class="header-link" title="Legal Notice">
+        <img src="../assets/icon-legal.svg" alt="Legal">
+      </a>
+    </div>
+    <img src="../assets/banner.png" class="banner" alt="The ACCurate Syncer">
     <a id="btn-air" class="air-btn" href="https://www.iheart.com/live/alternative-commentary-collective-6693/" target="_blank">
       <img id="air-on" src="../assets/on-air.png" alt="On Air" class="hidden">
       <img id="air-off" src="../assets/off-air.png" alt="Off Air">
     </a>
+  </div>
+
+  <div class="controls">
     <button id="btn-play-pause" class="cap-btn">
       <img id="cap-play" src="../assets/play.png" alt="Play">
       <img id="cap-pause" src="../assets/pause.png" alt="Pause" class="hidden">

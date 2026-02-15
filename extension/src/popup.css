@@ -15,17 +15,60 @@ body {
   color: #1A1A1A;
 }
 
-.banner {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
 .hidden {
   display: none;
 }
 
+/* --- Header: air indicator (left), banner (center), links (right) --- */
+
+.header {
+  position: relative;
+  padding-top: 8px;
+}
+
+.banner {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 6px;
+}
+
+.header-links {
+  position: absolute;
+  top: 4px;
+  left: 6px;
+  z-index: 2;
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+}
+
+.header-link {
+  display: block;
+  color: #1A1A1A;
+  opacity: 0.5;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.header-link:hover {
+  opacity: 0.9;
+}
+
+.header-link:active {
+  transform: scale(0.9);
+}
+
+.header-link img {
+  width: 18px;
+  height: 18px;
+}
+
 .air-btn {
+  position: absolute;
+  top: 0;
+  right: 4px;
+  z-index: 2;
+  transform: rotate(12deg);
   background: none;
   border: none;
   cursor: pointer;
@@ -34,29 +77,20 @@ body {
 }
 
 .air-btn:active {
-  transform: scale(0.95);
+  transform: rotate(12deg) scale(0.95);
 }
 
 .air-btn img {
-  width: 100px;
+  width: 64px;
   height: auto;
 }
 
-.main-row {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 0;
-}
+/* --- Controls --- */
 
-.nudge-row {
+.controls {
   display: flex;
   justify-content: center;
-  align-items: center;
-  gap: 8px;
-  padding: 0 8px;
-  margin-top: 8px;
+  padding: 2px 0;
 }
 
 .cap-btn {
@@ -72,8 +106,19 @@ body {
 }
 
 .cap-btn img {
-  width: 110px;
-  height: 110px;
+  width: 120px;
+  height: 120px;
+}
+
+/* --- Nudge row --- */
+
+.nudge-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+  margin-top: 4px;
 }
 
 .nudge-btn {

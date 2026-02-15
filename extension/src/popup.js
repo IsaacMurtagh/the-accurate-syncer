@@ -16,9 +16,20 @@ let currentDelay = 0;
 let pausedAt = null;
 let delayAtPause = 0;
 let tickInterval = null;
+let cachedTabId = null;
+let sessionId = null;
 
 function renderOffset() {
   offsetDisplay.textContent = currentDelay.toFixed(1) + 's';
+}
+
+function saveState() {
+  chrome.storage.local.set({
+    currentDelay,
+    pausedAt,
+    delayAtPause,
+    sessionId,
+  });
 }
 
 function startTicking() {
@@ -94,10 +105,14 @@ function executeMediaAction(tabId, action, payload) {
 async function runAction(action, payload) {
   try {
     const tabId = await getActiveTabId();
+    cachedTabId = tabId;
     const result = await executeMediaAction(tabId, action, payload);
 
     if (!result || !result.ok) return;
 
+    if (action === 'detect' && result.sessionId) {
+      sessionId = result.sessionId;
+    }
     if (result.snapshot) {
       updateLiveState(result.snapshot);
       if (action === 'detect' && streamDetected) {
@@ -115,6 +130,7 @@ btnPlayPause.addEventListener('click', () => {
     setPlayPauseIcon(false);
     pausedAt = Date.now();
     startTicking();
+    saveState();
     runAction('mute', {});
   } else {
     setPlayPauseIcon(true);
@@ -122,6 +138,7 @@ btnPlayPause.addEventListener('click', () => {
     pausedAt = null;
     stopTicking();
     renderOffset();
+    saveState();
     runAction('resume', { rewindSeconds: elapsed });
   }
 });
@@ -129,10 +146,16 @@ btnPlayPause.addEventListener('click', () => {
 btnAir.addEventListener('click', async (e) => {
   e.preventDefault();
   if (streamDetected) {
+    var LIVE_BUFFER = 3;
+    currentDelay = LIVE_BUFFER;
+    if (pausedAt) {
+      pausedAt = null;
+      stopTicking();
+      setPlayPauseIcon(true);
+    }
     renderOffset();
-    runAction('nudge', { deltaSeconds: -currentDelay });
-    currentDelay = 0;
-    renderOffset();
+    saveState();
+    runAction('setDelay', { delaySeconds: LIVE_BUFFER });
     return;
   }
   // Only open iHeart if not already on iheart
@@ -153,6 +176,7 @@ function nudge(delta) {
     pausedAt = Date.now();
   }
   renderOffset();
+  saveState();
   runAction('nudge', { deltaSeconds: delta });
 }
 
@@ -160,8 +184,29 @@ btnBack5.addEventListener('click', () => nudge(5));
 btnForward5.addEventListener('click', () => nudge(-5));
 
 async function init() {
+  const saved = await chrome.storage.local.get(['currentDelay', 'pausedAt', 'delayAtPause', 'sessionId']);
   await runAction('detect', {});
+
+  const sameSession = saved.sessionId && saved.sessionId === sessionId;
+  if (!sameSession) return;
+
+  if (saved.pausedAt) {
+    // Was muted when popup closed — restore muted state and keep ticking
+    pausedAt = saved.pausedAt;
+    delayAtPause = saved.delayAtPause || 0;
+    currentDelay = delayAtPause + (Date.now() - pausedAt) / 1000;
+    renderOffset();
+    startTicking();
+    setPlayPauseIcon(false);
+  } else if (saved.currentDelay > 0) {
+    currentDelay = saved.currentDelay;
+    renderOffset();
+  }
 }
+
+window.addEventListener('pagehide', () => {
+  saveState();
+});
 
 init();
 
@@ -233,7 +278,7 @@ function runMediaAction(action, payload) {
   const best = detectBest();
 
   if (action === 'detect') {
-    return { ok: true, snapshot: snapshotFromInfo(best) };
+    return { ok: true, snapshot: snapshotFromInfo(best), sessionId: performance.timeOrigin };
   }
 
   if (!best) {
