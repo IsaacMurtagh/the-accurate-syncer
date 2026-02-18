@@ -2,6 +2,9 @@
 
 [Website](https://isaacmurtagh.github.io/the-accurate-syncer/)
 
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/ainlcejmepmgocacoicokopojiklogob?label=Chrome)](https://chromewebstore.google.com/detail/the-accurate-syncer/ainlcejmepmgocacoicokopojiklogob)
+[![Mozilla Add-on](https://img.shields.io/amo/v/the-accurate-syncer?label=Firefox)](https://addons.mozilla.org/en-US/firefox/addon/the-accurate-syncer)
+
 ![The ACCurate Syncer](docs/public/step-3.png)
 
 Sky Sport streaming is a solid 20–60 seconds behind live radio. So the ACC calls tries before you've even seen the linebreak. This extension holds the iHeart Radio stream back so the commentary lines up with what's on your screen.
@@ -12,10 +15,10 @@ Pause the audio, wait until commentary matches your TV picture, hit play. The st
 
 ## Install
 
-1. Open `chrome://extensions/` and enable Developer mode
-2. Click **Load unpacked** and select the `extension/` folder
-3. Navigate to the ACC on [iHeart Radio](https://www.iheart.com/live/alternative-commentary-collective-6693/) and hit play
-4. Click the extension icon and sync away
+- **Chrome:** [Chrome Web Store](https://chromewebstore.google.com/detail/the-accurate-syncer/ainlcejmepmgocacoicokopojiklogob)
+- **Firefox:** [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/the-accurate-syncer)
+
+Then navigate to the ACC on [iHeart Radio](https://www.iheart.com/live/alternative-commentary-collective-6693/), hit play, and click the extension icon to sync away.
 
 ## Docs
 
