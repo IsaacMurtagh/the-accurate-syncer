@@ -185,8 +185,8 @@ function nudge(delta) {
   runAction('nudge', { deltaSeconds: delta });
 }
 
-btnBack5.addEventListener('click', () => nudge(5));
-btnForward5.addEventListener('click', () => nudge(-5));
+btnBack5.addEventListener('click', () => nudge(0.5));
+btnForward5.addEventListener('click', () => nudge(-0.5));
 
 async function init() {
   const saved = await chrome.storage.local.get(['currentDelay', 'pausedAt', 'delayAtPause', 'sessionId']);
