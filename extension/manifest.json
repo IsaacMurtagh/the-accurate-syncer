@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "The ACCurate Syncer",
-  "version": "0.1.0",
+  "version": "1.0.4",
   "description": "Sync live iHeart Radio audio with your TV by delaying the stream to match what's on screen.",
   "permissions": ["activeTab", "scripting", "storage", "tabs"],
   "browser_specific_settings": {
